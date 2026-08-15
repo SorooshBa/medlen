@@ -1,0 +1,53 @@
+name: Build Debian package
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build Debian package
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          if [ "$VERSION" = "$GITHUB_REF_NAME" ]; then VERSION="0.1.0-dev"; fi
+          chmod +x packaging/debian/build-deb.sh
+          packaging/debian/build-deb.sh "$VERSION"
+
+      - name: Upload package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: medlen-debian-package
+          path: artifacts/deb/*.deb
+
+      - name: Attach package to GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/deb/*.deb
+
+      - name: Install Cloudsmith CLI
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: pipx install cloudsmith-cli
+
+      - name: Publish package to Cloudsmith
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
+          CLOUDSMITH_REPOSITORY: ${{ vars.CLOUDSMITH_REPOSITORY }}
+        run: |
+          test -n "$CLOUDSMITH_API_KEY" || { echo "Missing CLOUDSMITH_API_KEY secret."; exit 1; }
+          test -n "$CLOUDSMITH_REPOSITORY" || { echo "Missing CLOUDSMITH_REPOSITORY variable."; exit 1; }
+          cloudsmith push deb "$CLOUDSMITH_REPOSITORY" artifacts/deb/*.deb
