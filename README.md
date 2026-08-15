@@ -96,7 +96,8 @@ After the project is published to Cloudsmith, users add its signed repository
 source once and then install or upgrade Medlen normally:
 
 ```bash
-curl -1sLf 'https://dl.cloudsmith.io/public/sorooshb/medlen/cfg/setup/bash.deb.sh' | sudo -E bash
+curl -fsSL 'https://dl.cloudsmith.io/public/sorooshb/medlen/cfg/setup/bash.deb.sh' \\
+  | sudo env distro=ubuntu codename=any-version bash
 sudo apt update
 sudo apt install medlen
 ```

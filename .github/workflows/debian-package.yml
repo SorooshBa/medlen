@@ -50,4 +50,5 @@ jobs:
         run: |
           test -n "$CLOUDSMITH_API_KEY" || { echo "Missing CLOUDSMITH_API_KEY secret."; exit 1; }
           test -n "$CLOUDSMITH_REPOSITORY" || { echo "Missing CLOUDSMITH_REPOSITORY variable."; exit 1; }
-          cloudsmith push deb "$CLOUDSMITH_REPOSITORY/any-distro/any-version" artifacts/deb/*.deb
+          cloudsmith push deb "$CLOUDSMITH_REPOSITORY/ubuntu/any-version" artifacts/deb/*.deb
+          cloudsmith push deb "$CLOUDSMITH_REPOSITORY/debian/any-version" artifacts/deb/*.deb
