@@ -1,0 +1,60 @@
+.TH MEDLEN 1 "August 2026" "Medlen 0.1" "User Commands"
+.SH NAME
+medlen \- report durations and summary statistics for media files
+.SH SYNOPSIS
+.B medlen
+[IdirectoryR]
+.br
+.B medlen
+\fB-h\fR | \fB--help\fR
+.SH DESCRIPTION
+.B medlen
+recursively scans a directory for supported media files and prints the duration
+of every file it can read. It then prints the total, average, longest, and
+shortest durations.
+.PP
+If no directory is given, the current working directory is scanned. Directory
+paths are followed recursively, but symbolic links are not followed by default.
+.SH OPTIONS
+.TP
+.B -h, --help
+Print usage information and the supported media formats.
+.SH SUPPORTED FORMATS
+.IP \(bu 2
+WAV (\fB.wav\fR)
+.IP \(bu 2
+MP3 (\fB.mp3\fR)
+.IP \(bu 2
+FLAC (\fB.flac\fR)
+.IP \(bu 2
+Ogg Vorbis and Opus (\fB.ogg\fR, \fB.opus\fR)
+.IP \(bu 2
+MP4 family (\fB.mp4\fR, \fB.m4a\fR, \fB.mov\fR)
+.SH OUTPUT
+Durations use the format \fIHH:MM:SS.mmm\fR. Unsupported, unreadable, and
+malformed files are skipped with warnings and are excluded from the summary.
+.SH EXIT STATUS
+.TP
+.B 0
+The scan completed, including when no supported files were found.
+.TP
+.B 2
+Invalid command-line arguments or a directory that does not exist.
+.SH EXAMPLES
+Scan the current directory:
+.PP
+.EX
+medlen
+.EE
+.PP
+Scan a specific directory:
+.PP
+.EX
+medlen /srv/media
+.EE
+.SH NOTES
+Medlen reads container metadata directly and does not require FFmpeg or
+MediaInfo. Some unusual containers and variable-bit-rate MP3 files may not
+provide an exact duration.
+.SH SEE ALSO
+.BR apt (8)

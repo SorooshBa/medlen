@@ -10,7 +10,7 @@ package_root="$project_root/artifacts/deb/medlen_${version}_amd64"
 publish_root="$package_root/usr/lib/medlen"
 
 rm -rf "$package_root"
-mkdir -p "$publish_root" "$package_root/usr/bin" "$package_root/DEBIAN"
+mkdir -p "$publish_root" "$package_root/usr/bin" "$package_root/usr/share/man/man1" "$package_root/DEBIAN"
 
 dotnet restore "$project_root/Medlen.csproj" --runtime linux-x64
 
@@ -25,6 +25,7 @@ dotnet publish "$project_root/Medlen.csproj" \
   --output "$publish_root"
 
 ln -s ../lib/medlen/medlen "$package_root/usr/bin/medlen"
+install -m 0644 "$project_root/man/medlen.1" "$package_root/usr/share/man/man1/medlen.1"
 
 cat > "$package_root/DEBIAN/control" << EOF
 Package: medlen

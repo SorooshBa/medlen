@@ -1,118 +1,67 @@
 # Medlen
 
 Medlen is a lightweight, cross-platform command-line tool that recursively
-finds media files and reports their durations. It also calculates the total and
-average duration, plus the longest and shortest files.
+finds media files and reports their durations. It also calculates the total,
+average, longest, and shortest durations.
 
-It is written in C#/.NET and uses no FFmpeg, MediaInfo, or native multimedia
-frameworks.
+Medlen is written in C#/.NET and reads container metadata directly. It does not
+require FFmpeg, MediaInfo, or another large multimedia framework.
 
 ## Features
 
-- Recursively scans a directory (the current directory by default)
-- Reports the duration of each supported media file
-- Calculates total and average duration
-- Identifies the longest and shortest files
-- Sorts paths for repeatable output
-- Skips unreadable or unsupported files with a clear warning
-- Follows no symbolic links by default
+- Recursive directory scanning
+- Per-file duration output
+- Total and average duration
+- Longest and shortest file detection
+- Stable, sorted output
+- Warnings for unreadable or malformed files
+- No symbolic-link traversal by default
 
-## Supported formats
-
-| Format | Extensions | Duration source |
-| --- | --- | --- |
-| WAV | `.wav` | RIFF audio metadata |
-| MP3 | `.mp3` | MPEG frame headers and Xing/Info metadata |
-| FLAC | `.flac` | STREAMINFO metadata |
-| Ogg Vorbis / Opus | `.ogg`, `.opus` | Stream header and final granule position |
-| MP4 family | `.mp4`, `.m4a`, `.mov` | MP4 `mvhd` movie metadata |
-
-## Requirements
-
-- [.NET SDK 10.0](https://dotnet.microsoft.com/download) or later
-
-## Run from source
-
-Clone the repository, then run Medlen in the current directory:
+## Install on Ubuntu
 
 ```bash
-dotnet run
-```
-
-To scan a specific directory:
-
-```bash
-dotnet run -- "/path/to/media"
-```
-
-For example:
-
-```bash
-dotnet run -- "/mnt/e/Courses/My Course"
-```
-
-## Build a standalone executable
-
-Build the project:
-
-```bash
-dotnet build --configuration Release
-```
-
-Or publish a self-contained executable for your platform. Replace the runtime
-identifier as needed (`win-x64`, `linux-x64`, `osx-arm64`, and so on):
-
-```bash
-dotnet publish --configuration Release --runtime linux-x64 --self-contained true
-```
-
-The published executable is placed under:
-
-```text
-bin/Release/net10.0/linux-x64/publish/
-```
-
-## Install on Debian and Ubuntu
-
-Medlen is prepared as a self-contained `amd64` Debian package, so installed
-users do not need the .NET runtime. It targets current 64-bit Debian/Ubuntu
-systems with `libssl3` (for example, Debian 12+ and Ubuntu 22.04+). Build the
-package on a Debian/Ubuntu machine with the .NET 10 SDK and `dpkg-deb`
-available:
-
-```bash
-chmod +x packaging/debian/build-deb.sh
-./packaging/debian/build-deb.sh 0.1.0
-```
-
-This creates `artifacts/deb/medlen_0.1.0_amd64.deb`. Install a locally built or
-downloaded release package with:
-
-```bash
-sudo apt install ./artifacts/deb/medlen_0.1.0_amd64.deb
-```
-
-After the project is published to Cloudsmith, users add its signed repository
-source once and then install or upgrade Medlen normally:
-
-```bash
-curl -fsSL 'https://dl.cloudsmith.io/public/sorooshb/medlen/cfg/setup/bash.deb.sh' \\
+curl -fsSL 'https://dl.cloudsmith.io/public/sorooshb/medlen/cfg/setup/bash.deb.sh' \
   | sudo env distro=ubuntu codename=any-version bash
 sudo apt update
 sudo apt install medlen
 ```
 
-The GitHub Actions workflow builds a `.deb` artifact for each release tag, such
-as `v0.1.0`, and uploads it to Cloudsmith. See
-[the publishing guide](docs/PUBLISHING.md) for the one-time account and GitHub
-secret setup.
+After installation:
 
-### Publishing to an APT repository
+```bash
+medlen --help
+```
 
-Cloudsmith hosts and signs the APT repository. Set the `CLOUDSMITH_API_KEY`
-GitHub secret and `CLOUDSMITH_REPOSITORY` GitHub Actions variable to
-`sorooshb/medlen`, then publish a tag. Detailed instructions are in
-[the publishing guide](docs/PUBLISHING.md).
+To remove Medlen:
+
+```bash
+sudo apt remove medlen
+```
+
+## Supported formats
+
+| Format | Extensions |
+| --- | --- |
+| WAV | `.wav` |
+| MP3 | `.mp3` |
+| FLAC | `.flac` |
+| Ogg Vorbis / Opus | `.ogg`, `.opus` |
+| MP4 family | `.mp4`, `.m4a`, `.mov` |
+
+## Usage
+
+```text
+medlen [directory]
+```
+
+With no argument, Medlen scans the current working directory. Pass a directory
+to scan another location:
+
+```bash
+medlen /path/to/media
+```
+
+Use `-h` or `--help` to display usage information.
 
 ## Example output
 
@@ -131,38 +80,53 @@ Shortest:      intro.mp4 (00:02:54.847)
 Skipped:       0
 ```
 
-## Command reference
+## Build from source
 
-```text
-medlen [directory]
+Requirements:
+
+- [.NET SDK 10.0](https://dotnet.microsoft.com/download) or later
+
+Run from the repository:
+
+```bash
+dotnet run
+dotnet run -- /path/to/media
 ```
 
-| Argument | Description |
-| --- | --- |
-| `directory` | Optional directory to scan. Defaults to the current working directory. |
-| `-h`, `--help` | Print usage information. |
+Build a release binary:
 
-Medlen returns exit code `2` when the command is invalid or the target directory
-does not exist. An unreadable or malformed individual media file produces a
-warning but does not stop the scan.
+```bash
+dotnet build --configuration Release
+```
+
+Publish a self-contained binary for Linux:
+
+```bash
+dotnet publish --configuration Release \
+  --runtime linux-x64 --self-contained true
+```
+
+## Debian package development
+
+Build a local 64-bit Debian package:
+
+```bash
+chmod +x packaging/debian/build-deb.sh
+./packaging/debian/build-deb.sh 0.1.0
+sudo apt install ./artifacts/deb/medlen_0.1.0_amd64.deb
+```
+
+Release publishing instructions for maintainers are in
+[docs/PUBLISHING.md](docs/PUBLISHING.md).
 
 ## Limitations
 
-Media duration lives in container-specific metadata, and Medlen deliberately
-avoids large multimedia libraries. Therefore, it supports the common formats
-listed above rather than every possible media container or codec. Corrupted
-files, unusual container variants, DRM-protected files, and some variable-bit-rate
-MP3 files without Xing/Info metadata may not yield an exact duration.
-
-## Development
-
-Build and verify the project with:
-
-```bash
-dotnet build
-```
+Duration is read from format-specific metadata. Corrupt files, unusual
+container variants, DRM-protected files, and some variable-bit-rate MP3 files
+without Xing/Info metadata may not produce an exact duration. Unsupported files
+are skipped and do not affect the summary.
 
 ## License
 
-Add a license file before publishing if you want to grant others explicit reuse
-rights.
+No license file is included yet. Add a license before distributing modified
+versions of the project.
