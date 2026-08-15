@@ -126,7 +126,4 @@ container variants, DRM-protected files, and some variable-bit-rate MP3 files
 without Xing/Info metadata may not produce an exact duration. Unsupported files
 are skipped and do not affect the summary.
 
-## License
 
-No license file is included yet. Add a license before distributing modified
-versions of the project.
